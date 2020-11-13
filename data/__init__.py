@@ -1,9 +1,18 @@
+import os
 import math
+import pickle
 import pandas as pd
 
 
 def create_dataset(opt):
-    data = pd.read_csv(f'{opt.dataroot}/{opt.phase}.csv').values
+    data = pd.read_csv(f'{opt.dataroot}/{opt.phase}.csv')
+    ds = pd.get_dummies(data, columns=['breed'])
+
+    idx = {i: v[6:] for i, v in enumerate(ds.columns.values[1:])}
+    with open(os.path.join(opt.checkpoints_dir, opt.name, f'breads.pkl'), 'wb') as f:
+        pickle.dump(idx, f)
+
+    data = ds.values
     train_idx = math.floor(opt.train_ratio * len(data))
 
     train_data = data[0:train_idx]
