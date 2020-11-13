@@ -15,6 +15,7 @@ class TrainOptions(BaseOptions):
 
         # network saving and loading parameters
         parser.add_argument('--phase', type=str, default='train', help='train, val, test, etc')
+        parser.add_argument('--train_ratio', type=int, default=0.9, help="The ratio for train test split")
         parser.add_argument('--ct', type=int, default=0, help='Adding continue training. '
                                                               'The value is the epoch no, which the model will start '
                                                               'training from, and loads the model from.')
