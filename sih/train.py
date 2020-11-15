@@ -4,7 +4,9 @@ from data import create_dataset
 
 def main():
     opt = TrainOptions().parse()
-    create_dataset(opt)
+    trainloader, testloader = create_dataset(opt)
+
+    print(next(iter(trainloader))['image'].shape)
 
 
 if __name__ == '__main__':
