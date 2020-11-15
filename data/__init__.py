@@ -2,6 +2,8 @@ import os
 import math
 import pickle
 import pandas as pd
+from .datasets import SnakeDataset
+from .dataloaders import SnakeDataLoader
 
 
 def create_dataset(opt):
@@ -20,3 +22,11 @@ def create_dataset(opt):
 
     print(f"No of train data is {len(train_data)}",
           f"No of test data is {len(test_data)}", sep="\n")
+
+    train_dataset = SnakeDataset(opt.dataroot, opt.phase, train_data, opt.preprocess, opt.load_size, opt.crop_size)
+    test_dataset = SnakeDataset(opt.dataroot, opt.phase, test_data, opt.preprocess, opt.load_size, opt.crop_size)
+
+    trainloader = SnakeDataLoader(train_dataset, opt.batch_size, opt.num_threads, not opt.no_train_shuffle)
+    testloader = SnakeDataLoader(test_dataset, opt.batch_size, opt.num_threads, shuffle=False)
+
+    return trainloader, testloader
