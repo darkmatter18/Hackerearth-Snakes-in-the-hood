@@ -1,12 +1,12 @@
 from torch.utils.data import DataLoader
 
 
-class SITHDataLoader:
+class SnakeDataLoader:
     """Wrapper class of Dataset class that performs multi-threaded data loading"""
 
     def __init__(self, torch_dataset, batch_size=1, num_threads=0, shuffle=True):
         """
-        SITHDataLoader Class
+        SnakeDataLoader Class
 
         :param torch_dataset: Torch dataset
         :param batch_size: no of examples per batch. Default: 1
