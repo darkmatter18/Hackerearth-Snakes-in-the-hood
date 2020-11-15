@@ -1,4 +1,5 @@
 import os
+import torch
 import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
@@ -9,8 +10,6 @@ from torchvision.transforms import Resize, RandomCrop, RandomRotation, RandomHor
 class SnakeDataset(Dataset):
     def __init__(self, dataroot: str, phase: str, data: np.array, preprocess: str = 'resize,crop,rotate,flip',
                  load_size: int = 156, crop_size: int = 128):
-        self.dataroot = dataroot
-        self.phase = phase
         self.data = data
         self.preprocess = preprocess
         self.load_size = load_size
@@ -24,8 +23,8 @@ class SnakeDataset(Dataset):
         file = os.path.join(self.image_dir, f'{d[0]}.jpg')
         img = Image.open(file).convert('RGB')
         img_t = self.transforms(img)
-
-        return {'image': img_t, 'label': d[1:]}
+        # print(type(img_t), type(d[1:]))
+        return {'image': img_t, 'label': torch.from_numpy(d[1:].astype('uint8'))}
 
     def __len__(self):
         return len(self.data)
@@ -46,7 +45,7 @@ class SnakeDataset(Dataset):
             transform_list.append(RandomHorizontalFlip())
 
         if convert:
-            transform_list += [ToTensor()]
-            transform_list += [Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+            transform_list.append(ToTensor())
+            transform_list.append(Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)))
 
         return Compose(transform_list)
