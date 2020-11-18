@@ -15,7 +15,7 @@ class SnakeDataset(Dataset):
         self.load_size = load_size
         self.crop_size = crop_size
 
-        self.transforms = self.get_transform()
+        self.transforms = self.get_transform(self.preprocess)
         self.image_dir = os.path.join(dataroot, phase)
 
     def __getitem__(self, index):
@@ -29,19 +29,19 @@ class SnakeDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def get_transform(self, convert=True):
+    def get_transform(self, preprocess: str, convert=True):
         transform_list = []
 
-        if 'resize' in self.preprocess:
+        if 'resize' in preprocess:
             transform_list.append(Resize([self.load_size, self.load_size]))
 
-        if 'rotate' in self.preprocess:
+        if 'rotate' in preprocess:
             transform_list.append(RandomRotation(30))
 
-        if 'crop' in self.preprocess:
+        if 'crop' in preprocess:
             transform_list.append(RandomCrop(self.crop_size))
 
-        if 'flip' in self.preprocess:
+        if 'flip' in preprocess:
             transform_list.append(RandomHorizontalFlip())
 
         if convert:
