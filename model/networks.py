@@ -24,7 +24,7 @@ def downsample_(inplanes: int, planes: int, stride: int, norm_layer: Callable[..
 class ResnetBlock(nn.Module):
 
     def __init__(self, inplanes: int, planes: int, stride: int = 1, downsample: Optional[nn.Module] = None,
-                 norm_layer: Optional[Callable[..., nn.Module]] = None) -> None:
+                 norm_layer: Optional[Callable[..., nn.Module]] = None, use_dropout: bool = False, drop:float=0.1) -> None:
         super(ResnetBlock, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -36,6 +36,10 @@ class ResnetBlock(nn.Module):
         self.bn2 = norm_layer(planes)
         self.downsample = downsample
         self.stride = stride
+        self.use_dropout = use_dropout
+        
+        if self.use_dropout:
+            self.dropout = nn.Dropout(drop)
 
     def forward(self, x: Tensor) -> Tensor:
         identity = x
@@ -43,6 +47,9 @@ class ResnetBlock(nn.Module):
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
+        
+        if self.use_dropout:
+            out = self.dropout(out)
 
         out = self.conv2(out)
         out = self.bn2(out)
@@ -52,6 +59,9 @@ class ResnetBlock(nn.Module):
 
         out += identity
         out = self.relu(out)
+        
+        if self.use_dropout:
+            out = self.dropout(out)
 
         return out
 
@@ -75,38 +85,38 @@ class CnnEncoder(nn.Module):
 
         use_bias = False
         # First Conv layer
-        model = [nn.Conv2d(3, nf, kernel_size=7, padding=3, bias=use_bias),
+        model = [nn.Conv2d(3, nf, kernel_size=5, padding=2, bias=use_bias),
                  norm_layer(nf),
                  nn.ReLU(inplace=True)]
 
         if use_dropout:
-            model += [nn.Dropout(0.5)]
+            model += [nn.Dropout(0.1)]
 
-        model += [nn.MaxPool2d(3)]
+        model += [nn.MaxPool2d(2)]
 
         # 2 resnet blocks
-        model += [ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer),
-                  ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer)]
+        model += [ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer, use_dropout=use_dropout, drop=0.15),
+                  ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer, use_dropout=use_dropout, drop=0.15)]
 
         # 1 downsampling layer
-        model += [ResnetBlock(nf, nf * 2, stride=2, norm_layer=norm_layer,
+        model += [ResnetBlock(nf, nf * 2, stride=2, norm_layer=norm_layer, use_dropout=use_dropout, drop=0.15,
                               downsample=downsample_(nf, nf * 2, stride=2, norm_layer=norm_layer))]
         nf = nf * 2
 
         for _ in range(res_block3x3):
             # 3 resnet blocks
-            model += [ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer),
-                      ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer),
-                      ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer), ]
+            model += [ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer, use_dropout=use_dropout, drop=0.2),
+                      ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer, use_dropout=use_dropout, drop=0.2),
+                      ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer, use_dropout=use_dropout, drop=0.2)]
 
             # 1 downsampling layer
-            model += [ResnetBlock(nf, nf * 2, stride=2, norm_layer=norm_layer,
+            model += [ResnetBlock(nf, nf * 2, stride=2, norm_layer=norm_layer, use_dropout=use_dropout, drop=0.2,
                                   downsample=downsample_(nf, nf * 2, stride=2, norm_layer=norm_layer))]
             nf = nf * 2
 
         # 2 resnet blocks
-        model += [ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer),
-                  ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer)]
+        model += [ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer, use_dropout=use_dropout, drop=0.25),
+                  ResnetBlock(nf, nf, stride=1, norm_layer=norm_layer, use_dropout=use_dropout, drop=0.25)]
 
         model += [nn.AdaptiveAvgPool2d((1, 1))]
 
