@@ -23,8 +23,8 @@ class SnakeDataset(Dataset):
         file = os.path.join(self.image_dir, f'{d[0]}.jpg')
         img = Image.open(file).convert('RGB')
         img_t = self.transforms(img)
-        # print(type(img_t), type(d[1:]))
-        return {'image': img_t, 'label': torch.from_numpy(d[1:].astype('uint8'))}
+        label = torch.from_numpy(np.array(d[-1], dtype=np.int64))
+        return {'image': img_t, 'label': label}
 
     def __len__(self):
         return len(self.data)

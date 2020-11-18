@@ -50,6 +50,8 @@ class CnnModel:
         # Forward
         self.forward()
         self.optimizer.zero_grad()
+        # print(self.label_pred)
+        # print(self.label_original)
         self.criterion(self.label_pred, self.label_original)
         self.optimizer.step()
 
