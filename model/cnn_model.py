@@ -2,6 +2,7 @@ import os
 import torch
 import itertools
 from torch import nn, optim
+from torch.nn.parallel import DataParallel
 from .networks import CnnEncoder, LinearDecoder
 from utils import f1_loss
 
@@ -19,6 +20,10 @@ class CnnModel:
         # Models
         self.cnn_encoder = CnnEncoder(opt.nf, opt.res_blocks3x3, use_dropout=not opt.no_dropout).to(self.device)
         self.linear_decoder = LinearDecoder(self.encoder_out, opt.output_n).to(self.device)
+        
+        if self.gpu_ids:
+            self.cnn_encoder = DataParallel(self.cnn_encoder, self.gpu_ids)
+            self.linear_decoder = DataParallel(self.linear_decoder, self.gpu_ids)
 
         # Loss
         self.criterion = nn.NLLLoss()
