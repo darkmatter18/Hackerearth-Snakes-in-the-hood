@@ -16,8 +16,8 @@ class CnnModel:
         self.encoder_out = opt.nf * (2 ** opt.res_blocks3x3) * 2
 
         # Models
-        self.cnn_encoder = CnnEncoder(opt.nf, opt.res_blocks3x3, use_dropout=not opt.no_dropout)
-        self.linear_decoder = LinearDecoder(self.encoder_out, opt.output_n)
+        self.cnn_encoder = CnnEncoder(opt.nf, opt.res_blocks3x3, use_dropout=not opt.no_dropout).to(self.device)
+        self.linear_decoder = LinearDecoder(self.encoder_out, opt.output_n).to(self.device)
 
         # Loss
         self.criterion = nn.NLLLoss()
@@ -28,3 +28,34 @@ class CnnModel:
 
         print(self.cnn_encoder)
         print(self.linear_decoder)
+
+        self.image = None
+        self.label_original = None
+        self.label_pred = None
+
+    def feed_input(self, x: dict):
+        """Unpack input data from the dataloader and perform necessary pre-processing steps.
+
+        :param x: include the data itself and its metadata information.
+
+        The option 'direction' can be used to swap domain A and domain B.
+        """
+        self.image = x['image'].to(self.device)
+        self.label_original = x['label'].to(self.device)
+
+    def optimize_parameters(self):
+        """
+        Optimizes parameters
+        """
+        # Forward
+        self.forward()
+        self.optimizer.zero_grad()
+        self.criterion(self.label_pred, self.label_original)
+        self.optimizer.step()
+
+    def forward(self):
+        """Run forward pass
+        Called by both functions <optimize_parameters> and <test>
+        """
+        feature_vec = self.cnn_encoder(self.image)
+        self.label_pred = self.linear_decoder(feature_vec)
