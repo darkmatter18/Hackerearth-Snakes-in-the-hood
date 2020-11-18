@@ -29,11 +29,9 @@ class BaseOptions:
         parser.add_argument('--no_gpu', action='store_true', help='Use only CPU')
 
         # model parameters
-        parser.add_argument('--input_nc', default=3, type=int,
-                            help='# of input image channels: 3 for RGB and 1 for grayscale')
-        parser.add_argument('--output_n', type=int, default=3, help='# of output classes')
-        parser.add_argument('--nf', type=int, default=64, help='# of filters in the last conv layer')
-        parser.add_argument('--n_blocks', type=int, default=6, help='no of Resnet Blocks in Classifier')
+        parser.add_argument('--output_n', type=int, default=35, help='# of output classes')
+        parser.add_argument('--nf', type=int, default=64, help='# of filters in the first conv layer')
+        parser.add_argument('--res_blocks3x3', type=int, default=2, help='no of Resnet 3x3 Blocks in Classifier')
         parser.add_argument('--norm', type=str, default='instance',
                             help='instance normalization or batch normalization [instance | batch | none]')
         parser.add_argument('--padding_type', type=str, default='reflect',
