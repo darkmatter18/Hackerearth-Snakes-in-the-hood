@@ -10,7 +10,7 @@ class TrainOptions(BaseOptions):
         parser = BaseOptions.initialized(self, parser)
 
         # Training Stats params
-        parser.add_argument('--print_freq', type=int, default=100,
+        parser.add_argument('--print_freq', type=int, default=40,
                             help='frequency of showing training results on console')
 
         # network saving and loading parameters
