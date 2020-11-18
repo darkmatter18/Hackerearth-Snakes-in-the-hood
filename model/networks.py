@@ -1,3 +1,4 @@
+import torch
 from torch import nn, Tensor
 from typing import Callable, Optional
 
@@ -117,5 +118,13 @@ class CnnEncoder(nn.Module):
 
 
 class LinearDecoder(nn.Module):
-    def __init__(self, o):
+    def __init__(self, input_dim: int, output_dim: int):
         super(LinearDecoder, self).__init__()
+        self.fc = nn.Linear(input_dim, output_dim)
+
+    def forward(self, x: Tensor) -> Tensor:
+        x = torch.flatten(x, 1)
+        x = self.fc(x)
+
+        x = torch.log_softmax(x, dim=1)
+        return x
