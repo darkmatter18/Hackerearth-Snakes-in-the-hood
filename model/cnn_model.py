@@ -59,3 +59,11 @@ class CnnModel:
         """
         feature_vec = self.cnn_encoder(self.image)
         self.label_pred = self.linear_decoder(feature_vec)
+
+    def train(self):
+        self.cnn_encoder.train()
+        self.linear_decoder.train()
+
+    def eval(self):
+        self.cnn_encoder.eval()
+        self.linear_decoder.eval()
