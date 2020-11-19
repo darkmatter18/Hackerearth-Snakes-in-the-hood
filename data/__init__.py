@@ -2,7 +2,7 @@ import os
 import math
 import pickle
 import pandas as pd
-from .datasets import SnakeDataset
+from .datasets import SnakeDataset, SnakeTestDataset
 from .dataloaders import SnakeDataLoader
 
 
@@ -35,3 +35,12 @@ def create_dataset(opt):
     testloader = SnakeDataLoader(test_dataset, opt.batch_size, opt.num_threads, shuffle=False)
 
     return trainloader, testloader
+
+
+def create_test_dataset(opt):
+    data = pd.read_csv(f'{opt.dataroot}/{opt.phase}.csv')['image_id'].values
+
+    test_dataset = SnakeTestDataset(opt.dataroot, opt.phase, data, opt.preprocess, opt.load_size, opt.crop_size)
+    testloader = SnakeDataLoader(test_dataset, opt.batch_size, opt.num_threads, shuffle=False)
+
+    return testloader
