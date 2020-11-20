@@ -20,7 +20,7 @@ class CnnModel:
         # Models
         self.cnn_encoder = CnnEncoder(opt.nf, opt.res_blocks3x3, use_dropout=not opt.no_dropout).to(self.device)
         self.linear_decoder = LinearDecoder(self.encoder_out, opt.output_n).to(self.device)
-        
+
         if self.gpu_ids:
             self.cnn_encoder = DataParallel(self.cnn_encoder, self.gpu_ids)
             self.linear_decoder = DataParallel(self.linear_decoder, self.gpu_ids)
@@ -132,3 +132,18 @@ class CnnModel:
         save_path = os.path.join(self.save_dir, f"{epoch}_optimizer.pt")
 
         torch.save(self.optimizer.state_dict(), save_path)
+
+    def load_networks(self, model_name: str, load_optim: bool = False):
+        self._load_object('cnn_encoder', f"{model_name}_net_cnn_encoder.pt")
+        self._load_object('linear_decoder', f"{model_name}_net_linear_decoder.pt")
+
+        if load_optim:
+            self._load_object('optimizer', f"{model_name}_optimizer.pt")
+
+    def _load_object(self, object_name:str, model_name:str):
+        state_dict = torch.load(model_name, map_location=self.device)
+
+        net = getattr(self, object_name)
+        if isinstance(net, torch.nn.DataParallel):
+            net = net.module
+        net.load_state_dict(state_dict)
