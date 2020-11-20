@@ -38,6 +38,7 @@ class CnnModel:
         self.image = None
         self.label_original = None
         self.label_pred = None
+        self.image_id = None
 
         self.training_loss = 0
         self.test_loss = 0
@@ -52,6 +53,7 @@ class CnnModel:
         """
         self.image = x['image'].to(self.device)
         self.label_original = x['label'].to(self.device)
+        self.image_id = x['image_id']
 
     def optimize_parameters(self):
         """
