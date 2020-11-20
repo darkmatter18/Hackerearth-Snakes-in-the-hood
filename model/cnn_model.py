@@ -25,12 +25,14 @@ class CnnModel:
             self.cnn_encoder = DataParallel(self.cnn_encoder, self.gpu_ids)
             self.linear_decoder = DataParallel(self.linear_decoder, self.gpu_ids)
 
-        # Loss
-        self.criterion = nn.NLLLoss()
+        if self.isTrain:
+            # Loss
+            self.criterion = nn.NLLLoss()
 
-        # Optimizer
-        self.optimizer = optim.Adam(itertools.chain(self.cnn_encoder.parameters(), self.linear_decoder.parameters()),
-                                    lr=opt.lr)
+            # Optimizer
+            self.optimizer = optim.Adam(
+                itertools.chain(self.cnn_encoder.parameters(), self.linear_decoder.parameters()),
+                lr=opt.lr)
 
         print(self.cnn_encoder)
         print(self.linear_decoder)
@@ -146,7 +148,7 @@ class CnnModel:
             self._load_object('optimizer', f"{model_name}_optimizer.pt")
 
     def _load_object(self, object_name: str, model_name: str):
-        state_dict = torch.load(model_name, map_location=self.device)
+        state_dict = torch.load(os.path.join(self.save_dir, model_name), map_location=self.device)
 
         net = getattr(self, object_name)
         if isinstance(net, torch.nn.DataParallel):
