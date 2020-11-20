@@ -116,7 +116,7 @@ class CnnModel:
         return test_loss, f1_score
 
     def get_inference(self) -> dict:
-        return {'output': torch.exp(self.label_pred).argmax(dim=1).numpy(), 'image_id': self.image_id}
+        return {'output': torch.exp(self.label_pred).argmax(dim=1).cpu().numpy(), 'image_id': self.image_id}
 
     def save_networks(self, epoch: str) -> None:
         """Save models
