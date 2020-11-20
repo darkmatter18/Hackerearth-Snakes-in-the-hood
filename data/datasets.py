@@ -33,7 +33,7 @@ class SnakeDataset(Dataset):
         if not self.test_mode:
             label = torch.from_numpy(np.array(d[-1], dtype=np.int64))
         else:
-            label = None
+            label = np.array([])
 
         return {'image': img_t, 'label': label, 'image_id': f_name}
 
