@@ -97,7 +97,7 @@ class CnnModel:
         test_loss = self.criterion(self.label_pred, self.label_original).item()
         # print("Test Loss", test_loss)
         self.test_loss += test_loss
-        self.f1_scores += f1_loss(self.label_original, self.label_pred).item()
+        self.f1_scores += f1_loss(self.label_original, torch.exp(self.label_pred)).item()
 
     def run_test_on_training(self, testloader) -> tuple:
         with torch.no_grad():
@@ -112,6 +112,9 @@ class CnnModel:
         self.f1_scores = 0
 
         return test_loss, f1_score
+
+    def get_inference(self) -> dict:
+        return {'output': torch.exp(self.label_pred).argmax(dim=1).numpy(), 'image_id': self.image_id}
 
     def save_networks(self, epoch: str) -> None:
         """Save models
@@ -142,7 +145,7 @@ class CnnModel:
         if load_optim:
             self._load_object('optimizer', f"{model_name}_optimizer.pt")
 
-    def _load_object(self, object_name:str, model_name:str):
+    def _load_object(self, object_name: str, model_name: str):
         state_dict = torch.load(model_name, map_location=self.device)
 
         net = getattr(self, object_name)
