@@ -1,7 +1,7 @@
 import torch
 from options.TestOptions import TestOptions
 from data import create_test_dataset
-from model.cnn_model import CnnModel
+from model import create_model
 from utils.TestStore import TestStore
 
 
@@ -15,7 +15,7 @@ def main():
     test_store = TestStore(opt)
 
     # setup Gan
-    model = CnnModel(opt)
+    model = create_model(opt)
     model.load_networks(opt.load_model)
     model.eval()
 

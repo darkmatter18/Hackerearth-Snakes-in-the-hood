@@ -27,6 +27,7 @@ class BaseOptions:
         parser.add_argument('--dataroot', required=True, type=str,
                             help="path to images (should have sub folders trainA, trainB, valA, valB, etc)")
         parser.add_argument('--no_gpu', action='store_true', help='Use only CPU')
+        parser.add_argument('--model', type=str, default='cnn', help='cnn|resnet')
 
         # model parameters
         parser.add_argument('--output_n', type=int, default=35, help='# of output classes')

@@ -1,6 +1,6 @@
 import time
 from data import create_dataset
-from model.cnn_model import CnnModel
+from model import create_model
 from options.TrainOptions import TrainOptions
 from utils.TestStats import TrainStats
 
@@ -9,7 +9,7 @@ def main():
     opt = TrainOptions().parse()
     trainloader, testloader = create_dataset(opt)
 
-    model = CnnModel(opt)
+    model = create_model(opt)
     stats = TrainStats(opt)
 
     total_iters = 0                # the total number of training iterations

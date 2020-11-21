@@ -2,12 +2,13 @@ import os
 import torch
 import itertools
 from torch import nn, optim
+from .networks import LinearDecoder
 from torch.nn.parallel import DataParallel
-from .networks import CnnEncoder, LinearDecoder
 from utils import f1_loss
+from torchvision.models import resnet50
 
 
-class CnnModel:
+class ResnetModel:
     def __init__(self, opt):
         self.opt = opt
         self.gpu_ids = opt.gpu_ids
@@ -28,11 +29,18 @@ class CnnModel:
         self.encoder_out = opt.nf * (2 ** opt.res_blocks3x3) * 2
 
         # Models
-        self.cnn_encoder = CnnEncoder(opt.nf, opt.res_blocks3x3, use_dropout=not opt.no_dropout).to(self.device)
-        self.linear_decoder = LinearDecoder(self.encoder_out, opt.output_n).to(self.device)
+
+        resnet = resnet50(pretrained=True)
+        for param in resnet.parameters():
+            param.requires_grad_(False)
+
+        modules = list(resnet.children())[:-1]
+
+        self.resnet_encoder = nn.Sequential(*modules).to(self.device)
+        self.linear_decoder = LinearDecoder(resnet.fc.in_features, opt.output_n).to(self.device)
 
         if self.gpu_ids:
-            self.cnn_encoder = DataParallel(self.cnn_encoder, self.gpu_ids)
+            self.resnet_encoder = DataParallel(self.resnet_encoder, self.gpu_ids)
             self.linear_decoder = DataParallel(self.linear_decoder, self.gpu_ids)
 
         if self.isTrain:
@@ -41,14 +49,14 @@ class CnnModel:
 
             # Optimizer
             self.optimizer = optim.Adam(
-                itertools.chain(self.cnn_encoder.parameters(), self.linear_decoder.parameters()),
+                itertools.chain(self.resnet_encoder.parameters(), self.linear_decoder.parameters()),
                 lr=opt.lr)
             # Continue Training
             if self.opt.ct > 0:
                 print(f"Continue training from {self.opt.ct}")
                 self.load_networks(self.opt.ct, load_optim=True)
 
-        print(self.cnn_encoder)
+        print(self.resnet_encoder)
         print(self.linear_decoder)
 
     def feed_input(self, x: dict):
@@ -82,15 +90,15 @@ class CnnModel:
         """Run forward pass
         Called by both functions <optimize_parameters> and <test>
         """
-        feature_vec = self.cnn_encoder(self.image)
+        feature_vec = self.resnet_encoder(self.image)
         self.label_pred = self.linear_decoder(feature_vec)
 
     def train(self):
-        self.cnn_encoder.train()
+        self.resnet_encoder.train()
         self.linear_decoder.train()
 
     def eval(self):
-        self.cnn_encoder.eval()
+        self.resnet_encoder.eval()
         self.linear_decoder.eval()
 
     def get_last_avg_train_loss(self):
@@ -127,7 +135,7 @@ class CnnModel:
         """Save models
         :param epoch: Current Epoch (prefix for the name)
         """
-        self.save_network(self.cnn_encoder, 'cnn_encoder', epoch)
+        self.save_network(self.resnet_encoder, 'cnn_encoder', epoch)
         self.save_network(self.linear_decoder, 'linear_decoder', epoch)
 
     def save_network(self, net, net_name, epoch):
