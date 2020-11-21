@@ -33,6 +33,10 @@ class CnnModel:
             self.optimizer = optim.Adam(
                 itertools.chain(self.cnn_encoder.parameters(), self.linear_decoder.parameters()),
                 lr=opt.lr)
+            # Continue Training
+            if self.opt.ct > 0:
+                print(f"Continue training from {self.opt.ct}")
+                self.load_networks(self.opt.ct, load_optim=True)
 
         print(self.cnn_encoder)
         print(self.linear_decoder)
