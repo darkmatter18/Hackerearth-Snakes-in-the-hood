@@ -43,8 +43,8 @@ class BaseOptions:
         parser.add_argument('--preprocess', type=str, default='resize,crop,rotate,flip',
                             help='scaling and cropping of images at load time [resize,crop,rotate,flip | resize,crop | '
                                  'resize,crop,rotate]')
-        parser.add_argument('--load_size', type=int, default=140, help='scale images to this size')
-        parser.add_argument('--crop_size', type=int, default=128, help='then crop to this size')
+        parser.add_argument('--load_size', type=int, default=256, help='scale images to this size')
+        parser.add_argument('--crop_size', type=int, default=224, help='then crop to this size')
         parser.add_argument('--batch_size', type=int, default=1, help='input batch size')
         parser.add_argument('--num_threads', default=0, type=int, help='# threads for loading data')
         parser.add_argument('--no_train_shuffle', action='store_true',
