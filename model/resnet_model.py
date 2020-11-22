@@ -45,7 +45,7 @@ class ResnetModel:
 
         if self.isTrain:
             # Loss
-            self.criterion = nn.NLLLoss()
+            self.criterion = nn.CrossEntropyLoss()
 
             # Optimizer
             self.optimizer = optim.Adam(
@@ -112,7 +112,7 @@ class ResnetModel:
         test_loss = self.criterion(self.label_pred, self.label_original).item()
         # print("Test Loss", test_loss)
         self.test_loss += test_loss
-        self.f1_scores += f1_loss(self.label_original, torch.exp(self.label_pred)).item()
+        self.f1_scores += f1_loss(self.label_original, self.label_pred).item()
 
     def run_test_on_training(self, testloader) -> tuple:
         with torch.no_grad():
@@ -129,7 +129,7 @@ class ResnetModel:
         return test_loss, f1_score
 
     def get_inference(self) -> dict:
-        return {'output': torch.exp(self.label_pred).argmax(dim=1).cpu().numpy(), 'image_id': self.image_id}
+        return {'output': self.label_pred.argmax(dim=1).cpu().numpy(), 'image_id': self.image_id}
 
     def save_networks(self, epoch: str) -> None:
         """Save models
@@ -154,7 +154,6 @@ class ResnetModel:
         torch.save(self.optimizer.state_dict(), save_path)
 
     def load_networks(self, model_name: str, load_optim: bool = False):
-        self._load_object('cnn_encoder', f"{model_name}_net_cnn_encoder.pt")
         self._load_object('linear_decoder', f"{model_name}_net_linear_decoder.pt")
 
         if load_optim:
