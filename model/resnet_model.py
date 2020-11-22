@@ -25,14 +25,16 @@ class ResnetModel:
         self.training_loss = 0
         self.test_loss = 0
         self.f1_scores = 0
+        self.pretrained = True
 
         self.encoder_out = opt.nf * (2 ** opt.res_blocks3x3) * 2
 
         # Models
 
-        resnet = resnet50()
-#         for param in resnet.parameters():
-#             param.requires_grad_(False)
+        resnet = resnet50(pretrained = self.pretrained)
+        if self.pretrained:
+            for param in resnet.parameters():
+                param.requires_grad_(False)
 
         modules = list(resnet.children())[:-1]
 
@@ -135,7 +137,8 @@ class ResnetModel:
         """Save models
         :param epoch: Current Epoch (prefix for the name)
         """
-        self.save_network(self.resnet_encoder, 'cnn_encoder', epoch)
+        if not self.pretrained
+            self.save_network(self.resnet_encoder, 'resnet_encoder', epoch)
         self.save_network(self.linear_decoder, 'linear_decoder', epoch)
 
     def save_network(self, net, net_name, epoch):
@@ -154,6 +157,9 @@ class ResnetModel:
         torch.save(self.optimizer.state_dict(), save_path)
 
     def load_networks(self, model_name: str, load_optim: bool = False):
+        if not self.pretrained:
+            self._load_object('resnet_encoder', f"{model_name}_net_resnet_encoder.pt")
+        
         self._load_object('linear_decoder', f"{model_name}_net_linear_decoder.pt")
 
         if load_optim:
