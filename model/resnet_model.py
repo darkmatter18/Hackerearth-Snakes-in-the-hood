@@ -30,9 +30,9 @@ class ResnetModel:
 
         # Models
 
-        resnet = resnet50(pretrained=True)
-        for param in resnet.parameters():
-            param.requires_grad_(False)
+        resnet = resnet50()
+#         for param in resnet.parameters():
+#             param.requires_grad_(False)
 
         modules = list(resnet.children())[:-1]
 
