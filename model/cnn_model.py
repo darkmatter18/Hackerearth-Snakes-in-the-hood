@@ -37,7 +37,7 @@ class CnnModel:
 
         if self.isTrain:
             # Loss
-            self.criterion = nn.NLLLoss()
+            self.criterion = nn.CrossEntropyLoss()
 
             # Optimizer
             self.optimizer = optim.Adam(
