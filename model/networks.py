@@ -16,26 +16,35 @@ def conv1x1(in_planes: int, out_planes: int, stride: int = 1) -> nn.Conv2d:
 
 def downsample_(inplanes: int, planes: int, stride: int, norm_layer: Callable[..., nn.Module]):
     return nn.Sequential(
-        conv1x1(inplanes, planes, stride),
-        norm_layer(planes),
+        conv1x1(inplanes, planes * 4, stride),
+        norm_layer(planes * 4),
     )
 
 
 class ResnetBlock(nn.Module):
 
-    def __init__(self, inplanes: int, planes: int, stride: int = 1, downsample: Optional[nn.Module] = None,
-                 norm_layer: Optional[Callable[..., nn.Module]] = None, use_dropout: bool = False, drop:float=0.1) -> None:
+    expansion: int = 4
+
+    def __init__(self, inplanes: int, planes: int, stride: int = 1,
+                 downsample: Optional[nn.Module] = None, groups: int = 1, base_width: int = 64,
+                 dilation: int = 1, norm_layer: Optional[Callable[..., nn.Module]] = None,
+                 use_dropout: bool = False, drop:float = 0.0) -> None:
+        
         super(ResnetBlock, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
-        # Both self.conv1 and self.downsample layers downsample the input when stride != 1
-        self.conv1 = conv3x3(inplanes, planes, stride)
-        self.bn1 = norm_layer(planes)
+        width = int(planes * (base_width / 64.)) * groups
+        # Both self.conv2 and self.downsample layers downsample the input when stride != 1
+        self.conv1 = conv1x1(inplanes, width)
+        self.bn1 = norm_layer(width)
+        self.conv2 = conv3x3(width, width, stride, groups, dilation)
+        self.bn2 = norm_layer(width)
+        self.conv3 = conv1x1(width, planes * self.expansion)
+        self.bn3 = norm_layer(planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
-        self.conv2 = conv3x3(planes, planes)
-        self.bn2 = norm_layer(planes)
         self.downsample = downsample
         self.stride = stride
+        
         self.use_dropout = use_dropout
         
         if self.use_dropout:
@@ -53,6 +62,13 @@ class ResnetBlock(nn.Module):
 
         out = self.conv2(out)
         out = self.bn2(out)
+        out = self.relu(out)
+        
+        if self.use_dropout:
+            out = self.dropout(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
 
         if self.downsample is not None:
             identity = self.downsample(x)
@@ -68,9 +84,6 @@ class ResnetBlock(nn.Module):
 
 class CnnEncoder(nn.Module):
     """Resnet-based generator that consists of Resnet blocks between a few downsampling/upsampling operations.
-
-    We adapt Torch code and idea from Justin Johnson's neural style transfer project
-    https://github.com/jcjohnson/fast-neural-style
     """
 
     def __init__(self, nf=64, res_block3x3: int = 2, norm_layer: Callable[..., nn.Module] = nn.BatchNorm2d,
@@ -135,6 +148,4 @@ class LinearDecoder(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         x = torch.flatten(x, 1)
         x = self.fc(x)
-
-        x = torch.log_softmax(x, dim=1)
         return x
