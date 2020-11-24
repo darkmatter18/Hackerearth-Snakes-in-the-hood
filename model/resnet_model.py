@@ -168,9 +168,11 @@ class ResnetModel:
             self._load_object('optimizer', f"{model_name}_optimizer.pt")
 
     def _load_object(self, object_name: str, model_name: str):
-        state_dict = torch.load(os.path.join(self.save_dir, model_name), map_location=self.device)
+        path = os.path.join(self.save_dir, model_name)
+        state_dict = torch.load(path, map_location=self.device)
 
         net = getattr(self, object_name)
         if isinstance(net, torch.nn.DataParallel):
             net = net.module
         net.load_state_dict(state_dict)
+        print(f"Loading [{object_name}] from {path}")
