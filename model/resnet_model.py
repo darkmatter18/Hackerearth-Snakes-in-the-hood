@@ -131,7 +131,9 @@ class ResnetModel:
         return test_loss, f1_score
 
     def get_inference(self) -> dict:
-        return {'output': self.label_pred.argmax(dim=1).cpu().numpy(), 'image_id': self.image_id}
+        _, predicted = torch.max(self.label_pred, dim=1)
+        print(predicted.cpu().numpy())
+        return {'output': predicted.cpu().numpy(), 'image_id': self.image_id}
 
     def save_networks(self, epoch: str) -> None:
         """Save models
