@@ -1,5 +1,6 @@
 import torch
 from torch import nn, Tensor
+import torch.nn.functional as f
 from typing import Callable, Optional
 
 
@@ -148,4 +149,5 @@ class LinearDecoder(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         x = torch.flatten(x, 1)
         x = self.fc(x)
+        x = f.softmax(x, dim=1)
         return x
