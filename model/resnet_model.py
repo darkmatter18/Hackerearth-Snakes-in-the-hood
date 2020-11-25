@@ -50,9 +50,9 @@ class ResnetModel:
             self.criterion = nn.CrossEntropyLoss()
 
             # Optimizer
-            self.optimizer = optim.Adam(
+            self.optimizer = optim.SGD(
                 itertools.chain(self.resnet_encoder.parameters(), self.linear_decoder.parameters()),
-                lr=opt.lr)
+                lr=opt.lr, momentum=0.5)
             # Continue Training
             if self.opt.ct > 0:
                 print(f"Continue training from {self.opt.ct}")
@@ -132,7 +132,6 @@ class ResnetModel:
 
     def get_inference(self) -> dict:
         _, predicted = torch.max(self.label_pred, dim=1)
-        print(predicted.cpu().numpy())
         return {'output': predicted.cpu().numpy(), 'image_id': self.image_id}
 
     def save_networks(self, epoch: str) -> None:
