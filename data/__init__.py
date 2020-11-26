@@ -2,6 +2,7 @@ import os
 import math
 import pickle
 import pandas as pd
+import numpy as np
 from .datasets import SnakeDataset
 from .dataloaders import SnakeDataLoader
 
@@ -19,10 +20,10 @@ def create_dataset(opt):
     data = data.replace({"breed": breeds_to_idx})
 
     dataset = data.values
-    train_idx = math.floor(opt.train_ratio * len(dataset))
+    train_idx = np.random.choice(dataset.shape[0], math.floor(opt.train_ratio * len(dataset)), replace=False)
 
-    train_data = dataset[0:train_idx]
-    test_data = dataset[train_idx:-1]
+    train_data = dataset[train_idx]     # Train data
+    test_data = np.delete(dataset, train_idx, axis=0)   # Test data
 
     print(f"No of train data is {len(train_data)}",
           f"No of test data is {len(test_data)}", sep="\n")
