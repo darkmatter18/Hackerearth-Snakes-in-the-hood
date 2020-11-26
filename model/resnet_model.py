@@ -50,9 +50,9 @@ class ResnetModel:
             self.criterion = nn.CrossEntropyLoss()
 
             # Optimizer
-            self.optimizer = optim.SGD(
+            self.optimizer = optim.Adam(
                 itertools.chain(self.resnet_encoder.parameters(), self.linear_decoder.parameters()),
-                lr=opt.lr, momentum=0.5)
+                lr=opt.lr)
             # Continue Training
             if self.opt.ct > 0:
                 print(f"Continue training from {self.opt.ct}")
