@@ -1,10 +1,12 @@
-import os
-import torch
 import itertools
+import os
+
+import torch
 from torch import nn, optim
 from torch.nn.parallel import DataParallel
-from .networks import CnnEncoder, LinearDecoder
+
 from utils import f1_loss
+from .networks import LinearDecoder, BasicCnnEncoder
 
 
 class CnnModel:
@@ -25,10 +27,10 @@ class CnnModel:
         self.test_loss = 0
         self.f1_scores = 0
 
-        self.encoder_out = opt.nf * (2 ** opt.res_blocks3x3) * 2
+        self.encoder_out = 512
 
         # Models
-        self.cnn_encoder = CnnEncoder(opt.nf, opt.res_blocks3x3, use_dropout=not opt.no_dropout).to(self.device)
+        self.cnn_encoder = BasicCnnEncoder(opt.nf).to(self.device)
         self.linear_decoder = LinearDecoder(self.encoder_out, opt.output_n).to(self.device)
 
         if self.gpu_ids:
@@ -121,7 +123,7 @@ class CnnModel:
         return test_loss, f1_score
 
     def get_inference(self) -> dict:
-        return {'output': torch.exp(self.label_pred).argmax(dim=1).cpu().numpy(), 'image_id': self.image_id}
+        return {'output': self.label_pred.argmax(dim=1).cpu().numpy(), 'image_id': self.image_id}
 
     def save_networks(self, epoch: str) -> None:
         """Save models
