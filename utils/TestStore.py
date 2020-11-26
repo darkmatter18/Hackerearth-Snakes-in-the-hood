@@ -16,6 +16,8 @@ class TestStore:
         self.test_data = pd.DataFrame(columns=['image_id', 'breed'])
 
     def load_test_data(self, image_id: np.ndarray, output: np.ndarray) -> None:
+        print("Output", output)
+
         breed = pd.Series(output).replace(self.idx_to_breeds).values
         print(breed)
         df = pd.DataFrame(np.vstack((image_id, breed)).T, columns=['image_id', 'breed'])

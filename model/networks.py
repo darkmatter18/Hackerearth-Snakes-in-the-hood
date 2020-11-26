@@ -22,14 +22,13 @@ def downsample_(inplanes: int, planes: int, stride: int, norm_layer: Callable[..
 
 
 class ResnetBlock(nn.Module):
-
     expansion: int = 4
 
     def __init__(self, inplanes: int, planes: int, stride: int = 1,
                  downsample: Optional[nn.Module] = None, groups: int = 1, base_width: int = 64,
                  dilation: int = 1, norm_layer: Optional[Callable[..., nn.Module]] = None,
-                 use_dropout: bool = False, drop:float = 0.0) -> None:
-        
+                 use_dropout: bool = False, drop: float = 0.0) -> None:
+
         super(ResnetBlock, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -44,9 +43,9 @@ class ResnetBlock(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
         self.stride = stride
-        
+
         self.use_dropout = use_dropout
-        
+
         if self.use_dropout:
             self.dropout = nn.Dropout(drop)
 
@@ -56,14 +55,14 @@ class ResnetBlock(nn.Module):
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
-        
+
         if self.use_dropout:
             out = self.dropout(out)
 
         out = self.conv2(out)
         out = self.bn2(out)
         out = self.relu(out)
-        
+
         if self.use_dropout:
             out = self.dropout(out)
 
@@ -75,7 +74,7 @@ class ResnetBlock(nn.Module):
 
         out += identity
         out = self.relu(out)
-        
+
         if self.use_dropout:
             out = self.dropout(out)
 
@@ -138,6 +137,63 @@ class CnnEncoder(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         """Standard forward"""
         return self.model(x)
+
+
+class BasicCnnEncoder(nn.Module):
+    def __init__(self, nf):
+        super(BasicCnnEncoder, self).__init__()
+
+        # Input: (x, 3, 128, 128)
+        # Output: (x, 64, 64, 64)
+        self.block1 = nn.Sequential(
+            nn.Conv2d(3, nf, kernel_size=5, padding=2, bias=False),
+            nn.BatchNorm2d(nf),
+            nn.ReLU(inplace=True),
+            nn.Dropout2d(0.1),
+            nn.MaxPool2d(2)
+        )
+
+        # Input: (x, 64, 64, 64)
+        # Output: (x, 128, 32, 32)
+        self.block2 = nn.Sequential(
+            nn.Conv2d(nf, nf * 2, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(nf * 2),
+            nn.ReLU(inplace=True),
+            nn.Dropout2d(0.2),
+            nn.MaxPool2d(2)
+        )
+
+        # Input: (x, 128, 32, 32)
+        # Output: (x, 256, 16, 16)
+        self.block3 = nn.Sequential(
+            nn.Conv2d(nf * 2, nf * 4, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(nf * 4),
+            nn.ReLU(inplace=True),
+            nn.Dropout2d(0.3),
+            nn.MaxPool2d(2)
+        )
+
+        # Input: (x, 256, 16, 16)
+        # Output: (x, 512, 8, 8)
+        self.block4 = nn.Sequential(
+            nn.Conv2d(nf * 4, nf * 8, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(nf * 8),
+            nn.ReLU(inplace=True),
+            nn.Dropout2d(0.4),
+            nn.MaxPool2d(2)
+        )
+
+        self.argPool = nn.AdaptiveAvgPool2d((1, 1))
+
+    def forward(self, x: Tensor) -> Tensor:
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+
+        x = self.argPool(x)
+
+        return x
 
 
 class LinearDecoder(nn.Module):
