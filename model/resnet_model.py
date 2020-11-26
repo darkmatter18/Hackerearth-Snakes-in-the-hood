@@ -1,11 +1,13 @@
-import os
-import torch
 import itertools
+import os
+
+import torch
+from sklearn.metrics import f1_score
 from torch import nn, optim
-from .networks import LinearDecoder
 from torch.nn.parallel import DataParallel
-from utils import f1_loss
 from torchvision.models import resnet50
+
+from .networks import LinearDecoder
 
 
 class ResnetModel:
@@ -22,9 +24,9 @@ class ResnetModel:
         self.label_pred = None
         self.image_id = None
 
-        self.training_loss = 0
-        self.test_loss = 0
-        self.f1_scores = 0
+        self.training_loss = 0.0
+        self.test_loss = 0.0
+        self.f1_scores = 0.0
         self.pretrained = opt.pretrained
 
         self.encoder_out = opt.nf * (2 ** opt.res_blocks3x3) * 2
@@ -114,7 +116,8 @@ class ResnetModel:
         test_loss = self.criterion(self.label_pred, self.label_original).item()
         # print("Test Loss", test_loss)
         self.test_loss += test_loss
-        self.f1_scores += f1_loss(self.label_original, self.label_pred).item()
+        self.f1_scores += f1_score(self.label_original.cpu().numpy(), self.label_pred.argmax(dim=1).cpu().numpy(),
+                                   average='weighted')
 
     def run_test_on_training(self, testloader) -> tuple:
         with torch.no_grad():
@@ -124,11 +127,11 @@ class ResnetModel:
                 no = i + 1
         # print("Length of testloader", no)
         test_loss = self.test_loss / no
-        f1_score = self.f1_scores / no
+        f1_ = 100 * self.f1_scores / no
         self.test_loss = 0
         self.f1_scores = 0
 
-        return test_loss, f1_score
+        return test_loss, f1_
 
     def get_inference(self) -> dict:
         _, predicted = torch.max(self.label_pred, dim=1)

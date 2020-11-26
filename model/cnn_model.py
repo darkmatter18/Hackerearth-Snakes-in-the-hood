@@ -2,10 +2,10 @@ import itertools
 import os
 
 import torch
+from sklearn.metrics import f1_score
 from torch import nn, optim
 from torch.nn.parallel import DataParallel
 
-from utils import f1_loss
 from .networks import LinearDecoder, BasicCnnEncoder
 
 
@@ -23,9 +23,9 @@ class CnnModel:
         self.label_pred = None
         self.image_id = None
 
-        self.training_loss = 0
-        self.test_loss = 0
-        self.f1_scores = 0
+        self.training_loss = 0.0
+        self.test_loss = 0.0
+        self.f1_scores = 0.0
 
         self.encoder_out = 512
 
@@ -106,7 +106,8 @@ class CnnModel:
         test_loss = self.criterion(self.label_pred, self.label_original).item()
         # print("Test Loss", test_loss)
         self.test_loss += test_loss
-        self.f1_scores += f1_loss(self.label_original, torch.exp(self.label_pred)).item()
+        self.f1_scores += f1_score(self.label_original.cpu().numpy(), self.label_pred.argmax(dim=1).cpu().numpy(),
+                                   average='weighted')
 
     def run_test_on_training(self, testloader) -> tuple:
         with torch.no_grad():
@@ -116,11 +117,11 @@ class CnnModel:
                 no = i + 1
         # print("Length of testloader", no)
         test_loss = self.test_loss / no
-        f1_score = self.f1_scores / no
+        f1_ = 100 * self.f1_scores / no
         self.test_loss = 0
         self.f1_scores = 0
 
-        return test_loss, f1_score
+        return test_loss, f1_
 
     def get_inference(self) -> dict:
         return {'output': self.label_pred.argmax(dim=1).cpu().numpy(), 'image_id': self.image_id}
