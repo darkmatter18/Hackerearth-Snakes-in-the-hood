@@ -25,7 +25,7 @@ class SnakeDataset(Dataset):
             f_name = d[0]
         else:
             d = self.data[index]
-            f_name = d
+            f_name = d[0]
         file = os.path.join(self.image_dir, f'{f_name}.jpg')
         img = Image.open(file).convert('RGB')
         img_t = self.transforms(img)

@@ -29,10 +29,10 @@ def create_dataset(opt):
           f"No of test data is {len(test_data)}", sep="\n")
 
     train_dataset = SnakeDataset(dataroot=opt.dataroot, phase=opt.phase, data=train_data, preprocess=opt.preprocess,
-                                 apply_augmentation=True, test_mode=False, load_size=opt.load_size,
+                                 apply_augmentation=True, test_mode=not opt.isTrain, load_size=opt.load_size,
                                  crop_size=opt.crop_size)
     test_dataset = SnakeDataset(dataroot=opt.dataroot, phase=opt.phase, data=train_data, preprocess=opt.preprocess,
-                                apply_augmentation=False, test_mode=False, load_size=opt.load_size,
+                                apply_augmentation=False, test_mode=not opt.isTrain, load_size=opt.load_size,
                                 crop_size=opt.crop_size)
 
     trainloader = SnakeDataLoader(train_dataset, opt.batch_size, opt.num_threads, not opt.no_train_shuffle)
@@ -42,11 +42,16 @@ def create_dataset(opt):
 
 
 def create_test_dataset(opt):
-    data = pd.read_csv(f'{opt.dataroot}/{opt.phase}.csv')['image_id'].values
+    data = pd.read_csv(f'{opt.dataroot}/{opt.phase}.csv')
 
-    test_dataset = SnakeDataset(dataroot=opt.dataroot, phase=opt.phase, data=data, preprocess=opt.preprocess,
-                                apply_augmentation=False, test_mode=True, load_size=opt.load_size,
-                                crop_size=opt.crop_size)
+    if opt.phase == "train":
+        breeds = sorted(set(data['breed'].values))
+        breeds_to_idx = {v: i for i, v in enumerate(breeds)}
+        data = data.replace({"breed": breeds_to_idx})
+
+    test_dataset = SnakeDataset(dataroot=opt.dataroot, phase=opt.phase, data=data.values, preprocess=opt.preprocess,
+                                apply_augmentation=False, test_mode=opt.phase == "test",
+                                load_size=opt.load_size, crop_size=opt.crop_size)
 
     testloader = SnakeDataLoader(test_dataset, opt.batch_size, opt.num_threads, shuffle=False)
 
