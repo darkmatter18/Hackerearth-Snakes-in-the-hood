@@ -5,10 +5,9 @@ import torch
 from sklearn.metrics import f1_score
 from torch import nn, optim
 from torch.nn.parallel import DataParallel
-from torchvision.models import resnet50
 
 from .networks import LinearDecoder
-
+from .resnet import ResNet
 
 class ResnetModel:
     def __init__(self, opt):
@@ -33,15 +32,16 @@ class ResnetModel:
 
         # Models
 
-        resnet = resnet50(pretrained=self.pretrained)
-        if self.pretrained:
-            for param in resnet.parameters():
-                param.requires_grad_(False)
-
-        modules = list(resnet.children())[:-1]
-
-        self.resnet_encoder = nn.Sequential(*modules).to(self.device)
-        self.linear_decoder = LinearDecoder(resnet.fc.in_features, opt.output_n).to(self.device)
+        # resnet = resnet50(pretrained=self.pretrained)
+        # if self.pretrained:
+        #     for param in resnet.parameters():
+        #         param.requires_grad_(False)
+        #
+        # modules = list(resnet.children())[:-1]
+        #
+        # self.resnet_encoder = nn.Sequential(*modules).to(self.device)
+        self.resnet_encoder = ResNet([3, 4, 6, 3], use_dropout=not opt.no_dropout).to(self.device)
+        self.linear_decoder = LinearDecoder(512 * 4, opt.output_n).to(self.device)
 
         if self.gpu_ids:
             self.resnet_encoder = DataParallel(self.resnet_encoder, self.gpu_ids)
@@ -61,6 +61,7 @@ class ResnetModel:
                 self.load_networks(self.opt.ct, load_optim=True)
 
         print(self.resnet_encoder)
+        # print(self.resnet_encoder.module[0].weight)
         print(self.linear_decoder)
 
     def feed_input(self, x: dict):
@@ -135,7 +136,8 @@ class ResnetModel:
 
     def get_inference(self) -> dict:
         _, predicted = torch.max(self.label_pred, dim=1)
-        return {'output': predicted.cpu().numpy(), 'image_id': self.image_id}
+        return {'output': predicted.cpu().numpy(), 'image_id': self.image_id, 'label_orig':
+                self.label_original.cpu().numpy()}
 
     def save_networks(self, epoch: str) -> None:
         """Save models
@@ -168,6 +170,8 @@ class ResnetModel:
 
         if load_optim:
             self._load_object('optimizer', f"{model_name}_optimizer.pt")
+
+        # print(self.resnet_encoder.module[0].weight)
 
     def _load_object(self, object_name: str, model_name: str):
         path = os.path.join(self.save_dir, model_name)
