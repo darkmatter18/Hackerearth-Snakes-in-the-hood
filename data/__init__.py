@@ -20,6 +20,7 @@ def create_dataset(opt):
         pickle.dump({'breeds_to_idx': breeds_to_idx, 'idx_to_breeds': idx_to_breeds}, f)
 
     data = data.replace({"breed": breeds_to_idx})
+    print(data.head())
 
     dataset = data.values
     train_idx = np.random.choice(dataset.shape[0],
@@ -51,6 +52,7 @@ def create_test_dataset(opt):
         breeds = sorted(set(data['breed'].values))
         breeds_to_idx = {v: i for i, v in enumerate(breeds)}
         data = data.replace({"breed": breeds_to_idx})
+        print(data.head())
 
     test_dataset = SnakeDataset(dataroot=opt.dataroot, phase=opt.phase, data=data.values, preprocess=opt.preprocess,
                                 apply_augmentation=False, test_mode=opt.phase == "test",
