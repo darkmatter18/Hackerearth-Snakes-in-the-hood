@@ -1,6 +1,7 @@
 import os
-import torch
+
 import numpy as np
+import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import Resize, CenterCrop, RandomRotation, RandomHorizontalFlip, ToTensor, Normalize, \
@@ -18,6 +19,7 @@ class SnakeDataset(Dataset):
 
         self.transforms = self.get_transform(self.preprocess, augmentation=apply_augmentation)
         self.image_dir = os.path.join(dataroot, phase)
+        print(self.transforms)
 
     def __getitem__(self, index):
         if not self.test_mode:
