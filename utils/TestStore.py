@@ -2,6 +2,7 @@ import os
 import pickle
 import numpy as np
 import pandas as pd
+from sklearn.metrics import f1_score
 
 
 class TestStore:
@@ -15,11 +16,14 @@ class TestStore:
 
         self.test_data = pd.DataFrame(columns=['image_id', 'breed'])
 
-    def load_test_data(self, image_id: np.ndarray, output: np.ndarray) -> None:
-        print("Output", output)
-
+    def load_test_data(self, image_id: np.ndarray, output: np.ndarray, label_orig: np.ndarray) -> None:
         breed = pd.Series(output).replace(self.idx_to_breeds).values
-        print(breed)
+        print("Output:", output, "Breed:", breed,  sep="\n")
+
+        if label_orig:
+            print("Label Original", label_orig, sep="\n")
+            print("F1 Score: ", f1_score(label_orig, output, average='weighted'))
+
         df = pd.DataFrame(np.vstack((image_id, breed)).T, columns=['image_id', 'breed'])
         # print(df)
         self.test_data = pd.concat([self.test_data, df], ignore_index=True)

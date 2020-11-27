@@ -24,7 +24,7 @@ def main():
             model.feed_input(data)
             model.forward()
             batch_out = model.get_inference()
-            test_store.load_test_data(batch_out['image_id'], batch_out['output'])
+            test_store.load_test_data(batch_out['image_id'], batch_out['output'], batch_out['label_orig'])
             print(f"Written batch {i} of {len(dataset)//opt.batch_size}")
 
     if opt.write:
