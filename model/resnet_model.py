@@ -5,9 +5,11 @@ import torch
 from sklearn.metrics import f1_score
 from torch import nn, optim
 from torch.nn.parallel import DataParallel
+from torchvision.models import resnet50
 
 from .networks import LinearDecoder
 from .resnet import ResNet
+
 
 class ResnetModel:
     def __init__(self, opt):
@@ -31,17 +33,20 @@ class ResnetModel:
         self.encoder_out = opt.nf * (2 ** opt.res_blocks3x3) * 2
 
         # Models
+        if self.pretrained:
+            resnet = resnet50(pretrained=self.pretrained)
+            if self.pretrained:
+                for param in resnet.parameters():
+                    param.requires_grad_(False)
 
-        # resnet = resnet50(pretrained=self.pretrained)
-        # if self.pretrained:
-        #     for param in resnet.parameters():
-        #         param.requires_grad_(False)
-        #
-        # modules = list(resnet.children())[:-1]
-        #
-        # self.resnet_encoder = nn.Sequential(*modules).to(self.device)
-        self.resnet_encoder = ResNet([3, 4, 6, 3], use_dropout=not opt.no_dropout).to(self.device)
-        self.linear_decoder = LinearDecoder(512 * 4, opt.output_n).to(self.device)
+            modules = list(resnet.children())[:-1]
+
+            self.resnet_encoder = nn.Sequential(*modules).to(self.device)
+            self.linear_decoder = LinearDecoder(resnet.fc.in_features, opt.output_n).to(self.device)
+
+        else:
+            self.resnet_encoder = ResNet([3, 4, 6, 3], use_dropout=not opt.no_dropout).to(self.device)
+            self.linear_decoder = LinearDecoder(512 * 4, opt.output_n).to(self.device)
 
         if self.gpu_ids:
             self.resnet_encoder = DataParallel(self.resnet_encoder, self.gpu_ids)
