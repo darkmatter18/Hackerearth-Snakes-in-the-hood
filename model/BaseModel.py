@@ -2,6 +2,7 @@ import os
 from abc import ABC, abstractmethod
 
 import torch
+from sklearn.metrics import f1_score
 from torch.utils.data import DataLoader
 
 
@@ -21,6 +22,7 @@ class BaseModel(ABC):
 
         self.model_names = []
         self.optimizer = None
+        self.criterion = None
         self.scheduler = None
 
         self.training_loss = 0.0
@@ -76,13 +78,18 @@ class BaseModel(ABC):
         self.training_loss = 0
         return loss
 
-    @abstractmethod
     def _single_test(self, data: dict) -> None:
         """
         Single input testing pipeline
         :param data: The single batch of data
         """
-        pass
+        self.feed_input(data)
+        self.forward()
+        test_loss = self.criterion(self.label_pred, self.label_original).item()
+        # print("Test Loss", test_loss)
+        self.test_loss += test_loss
+        self.f1_scores += f1_score(self.label_original.cpu().numpy(), self.label_pred.argmax(dim=1).cpu().numpy(),
+                                   average='weighted')
 
     def run_test_on_training(self, testloader: DataLoader) -> tuple:
         """
@@ -138,7 +145,9 @@ class BaseModel(ABC):
         scheduler_save_path = os.path.join(self.save_dir, f"{epoch}_scheduler.pt")
 
         torch.save(self.optimizer.state_dict(), optimizer_save_path)
-        torch.save(self.scheduler.state_dict(), scheduler_save_path)
+
+        if self.scheduler:
+            torch.save(self.scheduler.state_dict(), scheduler_save_path)
 
     def load_networks(self, model_name: str, load_optim: bool = False, load_scheduler: bool = False) -> None:
         """
@@ -153,7 +162,7 @@ class BaseModel(ABC):
         if load_optim:
             self._load_object('optimizer', f"{model_name}_optimizer.pt")
 
-        if load_scheduler:
+        if load_scheduler and self.scheduler:
             self._load_object('scheduler', f"{model_name}_scheduler.pt")
 
     def _load_object(self, object_name: str, model_name: str) -> None:
