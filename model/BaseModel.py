@@ -54,13 +54,13 @@ class BaseModel(ABC):
         pass
 
     def update_learning_rate(self):
+        old_lr = self.optimizer.param_groups[0]['lr']
         if self.scheduler:
-            old_lr = self.optimizer.param_groups[0]['lr']
             self.scheduler.step()
-            lr = self.optimizer.param_groups[0]['lr']
-            print('learning rate %.7f -> %.7f' % (old_lr, lr))
         else:
             print("No LR scheduler found!")
+        lr = self.optimizer.param_groups[0]['lr']
+        print('learning rate %.7f -> %.7f' % (old_lr, lr))
 
     def train(self):
         """
