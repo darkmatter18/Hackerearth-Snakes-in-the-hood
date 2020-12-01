@@ -17,7 +17,7 @@ class SnakeDataset(Dataset):
         self.is_train = is_train
         self.is_y = is_y
 
-        self.transforms = self.get_transform()
+        self.transforms = self.get_transform(self.is_train)
         self.image_dir = os.path.join(dataroot, phase)
         print(self.transforms)
 
