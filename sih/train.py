@@ -48,6 +48,7 @@ def main():
             model.save_networks(str(epoch))
             model.save_optimizer(str(epoch))
 
+        model.update_learning_rate()
         print('End of epoch %d / %d \t Time Taken: %d sec' %
               (epoch, opt.n_epochs, time.time() - epoch_start_time))
 
