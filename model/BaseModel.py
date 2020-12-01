@@ -53,6 +53,15 @@ class BaseModel(ABC):
         """
         pass
 
+    def update_learning_rate(self):
+        if self.scheduler:
+            old_lr = self.optimizer.param_groups[0]['lr']
+            self.scheduler.step()
+            lr = self.optimizer.param_groups[0]['lr']
+            print('learning rate %.7f -> %.7f' % (old_lr, lr))
+        else:
+            print("No LR scheduler found!")
+
     def train(self):
         """
         Set the Models in the train mode
