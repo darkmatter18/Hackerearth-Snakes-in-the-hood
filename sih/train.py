@@ -39,14 +39,14 @@ def main():
                 print('saving the latest model (epoch %d, total_iters %d)' % (epoch, total_iters))
                 save_suffix = 'iter_%d' % total_iters if opt.save_by_iter else 'latest'
                 model.save_networks(save_suffix)
-                model.save_optimizer(save_suffix)
+                model.save_optimizer_scheduler(save_suffix)
 
         if epoch % opt.save_epoch_freq == 0:
             print('saving the model at the end of epoch %d, iters %d' % (epoch, total_iters))
             model.save_networks('latest')
             model.save_optimizer('latest')
             model.save_networks(str(epoch))
-            model.save_optimizer(str(epoch))
+            model.save_optimizer_scheduler(str(epoch))
 
         model.update_learning_rate()
         print('End of epoch %d / %d \t Time Taken: %d sec' %
