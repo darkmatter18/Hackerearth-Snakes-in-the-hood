@@ -22,7 +22,7 @@ class ResnetV2Model(BaseModel):
         if self.isTrain:
             self.criterion = nn.CrossEntropyLoss()
             self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001, betas=(0.5, 0.999))
-            #self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.1)
+            self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.1)
 
             # Continue Training
             if self.opt.ct > 0:
