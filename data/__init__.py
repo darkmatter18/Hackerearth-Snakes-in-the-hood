@@ -32,11 +32,11 @@ def create_dataset(opt):
     print(f"No of train data is {len(train_data)}",
           f"No of test data is {len(test_data)}", sep="\n")
 
-    train_dataset = SnakeDataset(dataroot=opt.dataroot, phase=opt.phase, data=train_data, preprocess=opt.preprocess,
-                                 apply_augmentation=True, test_mode=not opt.isTrain, load_size=opt.load_size,
+    train_dataset = SnakeDataset(dataroot=opt.dataroot, phase=opt.phase, data=train_data,
+                                 is_train=True, is_y=opt.isTrain, load_size=opt.load_size,
                                  crop_size=opt.crop_size)
-    test_dataset = SnakeDataset(dataroot=opt.dataroot, phase=opt.phase, data=train_data, preprocess=opt.preprocess,
-                                apply_augmentation=False, test_mode=not opt.isTrain, load_size=opt.load_size,
+    test_dataset = SnakeDataset(dataroot=opt.dataroot, phase=opt.phase, data=train_data,
+                                is_train=False, is_y=opt.isTrain, load_size=opt.load_size,
                                 crop_size=opt.crop_size)
 
     trainloader = SnakeDataLoader(train_dataset, opt.batch_size, opt.num_threads, not opt.no_train_shuffle)
@@ -54,8 +54,8 @@ def create_test_dataset(opt):
         data = data.replace({"breed": breeds_to_idx})
         print(data.head())
 
-    test_dataset = SnakeDataset(dataroot=opt.dataroot, phase=opt.phase, data=data.values, preprocess=opt.preprocess,
-                                apply_augmentation=False, test_mode=opt.phase == "test",
+    test_dataset = SnakeDataset(dataroot=opt.dataroot, phase=opt.phase, data=data.values,
+                                is_train=False, is_y=opt.phase == "train",
                                 load_size=opt.load_size, crop_size=opt.crop_size)
 
     testloader = SnakeDataLoader(test_dataset, opt.batch_size, opt.num_threads, shuffle=False)
