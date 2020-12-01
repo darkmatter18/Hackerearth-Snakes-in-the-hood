@@ -44,7 +44,7 @@ def main():
         if epoch % opt.save_epoch_freq == 0:
             print('saving the model at the end of epoch %d, iters %d' % (epoch, total_iters))
             model.save_networks('latest')
-            model.save_optimizer('latest')
+            model.save_optimizer_scheduler('latest')
             model.save_networks(str(epoch))
             model.save_optimizer_scheduler(str(epoch))
 
