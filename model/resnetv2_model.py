@@ -14,6 +14,11 @@ class ResnetV2Model(BaseModel):
         self.model.fc = nn.Linear(num_filters, opt.output_n)
 
         self.model = self.model.to(self.device)
+        
+        for name, params in self.model.named_parameters():
+            if not (name.startswith('layer4') or name.startswith('argpool') or name.startswith('fc')):
+                params.requires_grad = False
+        
         if self.gpu_ids:
             self.model = DataParallel(self.model, self.gpu_ids)
 
