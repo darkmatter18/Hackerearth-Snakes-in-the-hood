@@ -16,30 +16,29 @@ def main():
     for epoch in range(opt.epoch_count, opt.n_epochs + 1):
         epoch_start_time = time.time()
         epoch_iter = 0                  # the number of training iterations in current epoch, reset to 0 every epoch
+        
+        model.train()
+        print(f"Training {epoch}/{opt.n_epochs}")
         for i, data in enumerate(trainloader):
-            model.train()
+            
             model.feed_input(data)
-
-            iter_start_time = time.time()
             model.optimize_parameters()
 
             total_iters += 1
             epoch_iter += 1
+            
+        training_end_time = time.time()
+        model.eval()
+            
+        t_data = training_end_time - epoch_start_time #Training Time
+        t_comp =  t_data / opt.batch_size  #Single input time
+        
+        train_loss = model.get_last_train_loss() / len(trainloader.dataset)
+        
+        print(f"Evaluating {epoch}/{opt.n_epochs}")
+        test_loss, f1_score = model.evaluate_test(testloader)
+        stats.print_current_losses(epoch, epoch_iter, train_loss, test_loss, f1_score, t_comp, t_data)
 
-            model.eval()
-
-            if total_iters % opt.print_freq == 0:
-                t_data = iter_start_time - epoch_start_time
-                t_comp = (time.time() - iter_start_time) / opt.batch_size
-                train_loss = model.get_last_avg_train_loss()
-                test_loss, f1_score = model.run_test_on_training(testloader)
-                stats.print_current_losses(epoch, epoch_iter, train_loss, test_loss, f1_score, t_comp, t_data)
-
-            if total_iters % opt.save_latest_freq == 0:
-                print('saving the latest model (epoch %d, total_iters %d)' % (epoch, total_iters))
-                save_suffix = 'iter_%d' % total_iters if opt.save_by_iter else 'latest'
-                model.save_networks(save_suffix)
-                model.save_optimizer_scheduler(save_suffix)
 
         if epoch % opt.save_epoch_freq == 0:
             print('saving the model at the end of epoch %d, iters %d' % (epoch, total_iters))
