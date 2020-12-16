@@ -1,4 +1,3 @@
-import math
 import os
 import pickle
 
@@ -20,14 +19,15 @@ def create_dataset(opt):
         pickle.dump({'breeds_to_idx': breeds_to_idx, 'idx_to_breeds': idx_to_breeds}, f)
 
     data = data.replace({"breed": breeds_to_idx})
+    data = data.sample(frac=1).reset_index(drop=True)
+    
     print(data.head())
 
     dataset = data.values
-    train_idx = np.random.choice(dataset.shape[0],
-                                 math.floor(opt.train_ratio * len(dataset)), replace=False)
+    train_idx = int(opt.train_ratio * len(dataset))
 
-    train_data = dataset[train_idx]  # Train data
-    test_data = np.delete(dataset, train_idx, axis=0)  # Test data
+    train_data = dataset[:train_idx]  # Train data is the whole dataset
+    test_data = dataset[train_idx:]  # Test data
 
     print(f"No of train data is {len(train_data)}",
           f"No of test data is {len(test_data)}", sep="\n")
