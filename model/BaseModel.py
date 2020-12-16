@@ -53,14 +53,17 @@ class BaseModel(ABC):
         """
         pass
 
-    def update_learning_rate(self):
+    def update_learning_rate(self, val_loss = 0):
         old_lr = self.optimizer.param_groups[0]['lr']
         if self.scheduler:
-            self.scheduler.step()
+            if self.scheduler.__class__.__name__ == 'ReduceLROnPlateau':
+                self.scheduler.step(val_loss)
+            else:
+                self.scheduler.step()
         else:
             print("No LR scheduler found!")
         lr = self.optimizer.param_groups[0]['lr']
-        print('learning rate %.7f -> %.7f' % (old_lr, lr))
+        print(f'learning rate {old_lr} -> {lr}')
 
     def train(self):
         """
@@ -78,12 +81,12 @@ class BaseModel(ABC):
             net = getattr(self, model)
             net.eval()
 
-    def get_last_avg_train_loss(self) -> float:
+    def get_last_train_loss(self) -> float:
         """
-        Get the Training loss for the last batch
+        Get the Training loss for the last batch and reset it to zero
         :return: Training loss for last batch
         """
-        loss = self.training_loss / self.opt.print_freq
+        loss = self.training_loss
         self.training_loss = 0
         return loss
 
@@ -96,24 +99,22 @@ class BaseModel(ABC):
         self.forward()
         test_loss = self.criterion(self.label_pred, self.label_original).item()
         # print("Test Loss", test_loss)
-        self.test_loss += test_loss
+        self.test_loss += test_loss * self.image.size(0)
         self.f1_scores += f1_score(self.label_original.cpu().numpy(), self.label_pred.argmax(dim=1).cpu().numpy(),
-                                   average='weighted')
+                                   average='weighted') * self.image.size(0)
 
-    def run_test_on_training(self, testloader: DataLoader) -> tuple:
+    def evaluate_test(self, testloader: DataLoader) -> tuple:
         """
         Run the full Testing on the time of training
         :param testloader: The testloader, having test data
         :return: tuple of (test_loss, f1_score*100)
         """
         with torch.no_grad():
-            no = 0
-            for i, data in enumerate(testloader):
+            for data in testloader:
                 self._single_test(data)
-                no = i + 1
-        # print("Length of testloader", no)
-        test_loss = self.test_loss / no
-        f1_ = 100 * self.f1_scores / no
+                
+        test_loss = self.test_loss / len(testloader.dataset)
+        f1_ = 100 * self.f1_scores / len(testloader.dataset)
         self.test_loss = 0
         self.f1_scores = 0
 
