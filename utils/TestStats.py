@@ -39,7 +39,7 @@ class TrainStats:
         lss = os.path.join(self.log_loss_dir, self.log_file_name)
         liss = os.path.join(self.log_loss_dir, self.loss_file_name)
 
-        print(message)  # print the message
+        print("[STATS]", message)  # print the message
         with open(lss, "a") as log_file:
             log_file.write('%s\n' % message)
 
