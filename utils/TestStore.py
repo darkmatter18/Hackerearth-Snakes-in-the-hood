@@ -3,13 +3,13 @@ import pickle
 import numpy as np
 import pandas as pd
 from sklearn.metrics import f1_score
-
+from . import mkdirs
 
 class TestStore:
     def __init__(self, opt):
         self.opt = opt
-        self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)
-        self.test_file = os.path.join(self.save_dir, opt.test_file_name)
+        self.save_dir = os.path.join(opt.checkpoints_dir, opt.name, "test_cases")
+        mkdirs(self.save_dir)
 
         with open(os.path.join(opt.checkpoints_dir, opt.name, f'breads.pkl'), 'rb') as f:
             self.idx_to_breeds = pickle.load(f)['idx_to_breeds']
@@ -29,6 +29,8 @@ class TestStore:
         self.test_data = pd.concat([self.test_data, df], ignore_index=True)
         # print(self.test_data)
 
-    def write(self):
-        print(f"Writing to {self.test_file}")
-        self.test_data.to_csv(self.test_file, index=False)
+    def write(self, suffix:int=0):
+        file_name = os.path.join(self.save_dir, f"{self.opt.test_file_name}-{suffix}.csv")
+        print(f"Writing to {file_name}")
+        self.test_data.to_csv(file_name, index=False)
+        self.test_data = pd.DataFrame(columns=['image_id', 'breed'])
