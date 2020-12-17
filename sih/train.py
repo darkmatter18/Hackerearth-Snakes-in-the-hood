@@ -47,7 +47,7 @@ def main():
             model.save_networks(str(epoch))
             model.save_optimizer_scheduler(str(epoch))
 
-        model.update_learning_rate()
+        model.update_learning_rate(test_loss)
         print('End of epoch %d / %d \t Time Taken: %d sec' %
               (epoch, opt.n_epochs, time.time() - epoch_start_time))
 
