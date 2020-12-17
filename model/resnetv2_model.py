@@ -26,8 +26,10 @@ class ResnetV2Model(BaseModel):
 
         if self.isTrain:
             self.criterion = nn.CrossEntropyLoss()
-            self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001, betas=(0.5, 0.999))
-            self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.1)
+            #self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001, betas=(0.5, 0.999))
+            #self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.1)
+            self.optimizer = optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.0001)
+            self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, verbose=True)
 
             # Continue Training
             if self.opt.ct > 0:
@@ -44,10 +46,13 @@ class ResnetV2Model(BaseModel):
         self.label_original = x['label'].to(self.device)
         self.image_id = x['image_id']
 
-    def optimize_parameters(self):
+    def optimize_parameters(self, verbose=False):
         self.optimizer.zero_grad()
         self.forward()
         loss = self.criterion(self.label_pred, self.label_original)
         loss.backward()
         self.optimizer.step()
-        self.training_loss += loss.item()
+        l = loss.item() 
+        self.training_loss += l * self.image.size(0)
+        if verbose:
+            return l
