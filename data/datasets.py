@@ -5,7 +5,7 @@ import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import Resize, CenterCrop, RandomHorizontalFlip, ToTensor, Normalize, \
-    Compose, RandomResizedCrop
+    Compose, RandomResizedCrop, RandomErasing, RandomVerticalFlip
 
 
 class SnakeDataset(Dataset):
@@ -45,8 +45,10 @@ class SnakeDataset(Dataset):
             return Compose([
                 RandomResizedCrop(self.crop_size),
                 RandomHorizontalFlip(),
+                RandomVerticalFlip(),
                 ToTensor(),
-                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                RandomErasing()
             ])
         else:
             return Compose([
