@@ -29,7 +29,8 @@ class ResnetV2Model(BaseModel):
             #self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001, betas=(0.5, 0.999))
             #self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=10, gamma=0.1)
             self.optimizer = optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.0001)
-            self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, verbose=True)
+            #self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, verbose=True)
+            self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=30, gamma=0.1)
 
             # Continue Training
             if self.opt.ct > 0:
