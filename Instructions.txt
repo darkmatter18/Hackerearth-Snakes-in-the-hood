@@ -7,4 +7,4 @@ Training:
 
 Evaluating:
 1. Make sure you have done training before evaluating the model, as the breads.pkl file is needed for evaluation.
-2. Run Evaluation by: `python -m sih.test --dataroot ./dataset --model resnetv2 --batch_size 64 --num_threads 4 --write --start_load 24 --end_load 24`
+2. Run Evaluation by: `python -m sih.test --dataroot ./dataset --model resnetv2 --batch_size 64 --num_threads 4 --write --start_load 24 --end_load 25`
